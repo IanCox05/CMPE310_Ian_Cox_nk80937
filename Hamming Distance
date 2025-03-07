@@ -1,0 +1,73 @@
+section .data
+    str1 db "foo", 0
+    str2 db "bar", 0
+    result_msg db "Hamming Distance is: ", 0
+    len equ  $ - result_msg
+    newline db 10, 0
+
+section .bss
+    result resb 4
+
+section .text
+global _start
+
+_start:
+    ; Initialize registers
+    xor ecx, ecx
+    xor edx, edx
+    
+compare_loop:
+    ; Load bytes from both strings
+    movzx eax, byte [str1 + ecx] 
+    movzx ebx, byte [str2 + ecx] 
+    
+    ; Check if we've reached the end of strings
+    test eax, eax
+    jz end_calculation
+    
+    ; XOR the bytes to find differences
+    xor eax, ebx
+    
+    ; Count bits in the result
+    push ecx      
+    mov ecx, 8 
+    
+bit_count:
+    shr eax, 1
+    adc edx, 0       
+    loop bit_count    
+    
+    pop ecx 
+    inc ecx  
+    jmp compare_loop
+    
+end_calculation:
+    ; Convert result to ASCII
+    add dl, '0'
+    mov [result], dl
+    
+    ; Print result message
+    mov eax, 4   
+    mov ebx, 1  
+    mov ecx, result_msg  
+    mov edx, len    
+    int 0x80
+    
+    ; Print result number
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, result
+    mov edx, 1
+    int 0x80
+    
+    ; Print newline
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, newline
+    mov edx, 1
+    int 0x80
+    
+    ; Exit program
+    mov eax, 1
+    xor ebx, ebx  
+    int 0x80
